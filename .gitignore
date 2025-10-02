@@ -1,8 +1,9 @@
 .qodo
 .idea
 .gradle
-/build
-/local.properties
+.kotlin
+build
+local.properties
 .DS_Store
 
 

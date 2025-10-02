@@ -32,7 +32,6 @@ object JWTUtils {
         return "$header.$encodedPayload.$sign"
     }
 
-    @JvmOverloads
     fun signJWT(
     payload: String,
     keyPair: KeyPair,

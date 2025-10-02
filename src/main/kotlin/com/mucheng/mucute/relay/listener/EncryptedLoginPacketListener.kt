@@ -13,18 +13,10 @@ import java.util.*
 import javax.crypto.SecretKey
 
 open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
-    private var keyPair: KeyPair = EncryptionUtils.createKeyPair()
-    private var loginPacket: LoginPacket? = null
+    open var keyPair: KeyPair = EncryptionUtils.createKeyPair()
+    open var loginPacket: LoginPacket? = null
     var muCuteRelaySession: MuCuteRelaySession? = null
 
-    fun getKeyPair(): KeyPair = keyPair
-    fun setKeyPair(value: KeyPair) { keyPair = value }
-    fun getLoginPacket(): LoginPacket? = loginPacket
-    fun setLoginPacket(value: LoginPacket?) { loginPacket = value }
-    fun getMuCuteRelaySession(): MuCuteRelaySession {
-        return muCuteRelaySession ?: error("muCuteRelaySession not initialized")
-    }
-    fun setMuCuteRelaySession(value: MuCuteRelaySession) { muCuteRelaySession = value }
 
     override fun beforeClientBound(packet: BedrockPacket): Boolean {
         if (packet is LoginPacket) {
@@ -52,19 +44,19 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
     override fun beforeServerBound(packet: BedrockPacket): Boolean {
         if (packet is NetworkSettingsPacket) {
             val threshold = packet.compressionThreshold
-            val client = getMuCuteRelaySession().client
+
             if (threshold > 0) {
-                client?.setCompression(packet.compressionAlgorithm)
+                muCuteRelaySession?.client!!.setCompression(packet.compressionAlgorithm)
                 println("Compression threshold set to $threshold")
             } else {
-                client?.setCompression(PacketCompressionAlgorithm.NONE)
+                muCuteRelaySession?.client!!.setCompression(PacketCompressionAlgorithm.NONE)
                 println("Compression threshold set to 0")
             }
             val login = loginPacket
             if (login != null) {
-                getMuCuteRelaySession().serverBoundImmediately(login)
+                muCuteRelaySession!!.serverBoundImmediately(login)
             } else {
-                getMuCuteRelaySession().server.disconnect("LoginPacket is null")
+                muCuteRelaySession!!.server.disconnect("LoginPacket is null")
             }
             return true
         } else if (packet is ServerToClientHandshakePacket) {
@@ -82,21 +74,21 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
                 serverKey as PublicKey,
                 JWTUtils.base64Decode(payloadObject.get("salt").asString)
             )
-            val client = getMuCuteRelaySession().client
+            val client = muCuteRelaySession!!.client
             client?.enableEncryption(key)
             println("Encryption enabled")
-            getMuCuteRelaySession().serverBoundImmediately(ClientToServerHandshakePacket())
+            muCuteRelaySession!!.serverBoundImmediately(ClientToServerHandshakePacket())
             return true
         }
         return false
     }
 
     protected fun connectServer() {
-        getMuCuteRelaySession().muCuteRelay.connectToServer { _ ->
+        muCuteRelaySession!!.muCuteRelay.connectToServer { _ ->
             println("Connected to server")
             val packet = RequestNetworkSettingsPacket()
-            packet.protocolVersion = getMuCuteRelaySession().server.codec.protocolVersion
-            getMuCuteRelaySession().serverBoundImmediately(packet)
+            packet.protocolVersion = muCuteRelaySession!!.server.codec.protocolVersion
+            muCuteRelaySession!!.serverBoundImmediately(packet)
         }
     }
 
