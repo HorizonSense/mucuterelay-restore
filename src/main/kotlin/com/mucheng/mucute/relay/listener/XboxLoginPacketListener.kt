@@ -1,16 +1,14 @@
 package com.mucheng.mucute.relay.listener
 
-import com.mucheng.mucute.relay.MuCuteRelaySession
 import com.mucheng.mucute.relay.util.AuthUtils
 import com.mucheng.mucute.relay.util.IXboxIdentityTokenCache
-import com.mucheng.mucute.relay.util.JWTUtils
+import com.mucheng.mucute.relay.util.JWTUtils.signJWT
 import com.mucheng.mucute.relay.util.XboxDeviceInfo
 import com.mucheng.mucute.relay.util.XboxIdentityToken
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket
 import kotlin.jvm.functions.Function0
-import kotlin.text.Strings
 
 class XboxLoginPacketListener(
     val accessToken: Function0<String>,
@@ -50,12 +48,7 @@ class XboxLoginPacketListener(
             try {
                 packet.chain.clear()
                 packet.chain.addAll(getChain())
-                val extra = packet.extra
-                packet.extra = JWTUtilsKt.signJWT(
-                    StringsKt.split(extra, charArrayOf('.'))[1],
-                    keyPair,
-                    true
-                )
+                packet.extra = signJWT(packet.extra.split('.')[1], keyPair, base64Encoded = true)
                 println("Login success")
             } catch (e: Throwable) {
                 val disconnect = DisconnectPacket()

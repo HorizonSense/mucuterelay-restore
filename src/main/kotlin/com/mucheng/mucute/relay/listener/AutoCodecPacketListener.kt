@@ -3,12 +3,7 @@ package com.mucheng.mucute.relay.listener
 import com.mucheng.mucute.relay.MuCuteRelay
 import com.mucheng.mucute.relay.MuCuteRelaySession
 import com.mucheng.mucute.relay.definition.Definitions
-import kotlin.Lazy
-import kotlin.LazyThreadSafetyMode
-import kotlin.collections.LinkedHashMap
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec
-import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper
-import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer
 import org.cloudburstmc.protocol.bedrock.codec.v291.Bedrock_v291
 import org.cloudburstmc.protocol.bedrock.codec.v313.Bedrock_v313
 import org.cloudburstmc.protocol.bedrock.codec.v332.Bedrock_v332
@@ -61,11 +56,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766
 import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776
 import org.cloudburstmc.protocol.bedrock.data.EncodingSettings
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket
-import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket
-import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket
-import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket
-import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket
+import org.cloudburstmc.protocol.bedrock.packet.*
 
 class AutoCodecPacketListener(
     val muCuteRelaySession: MuCuteRelaySession,
@@ -92,7 +83,7 @@ class AutoCodecPacketListener(
             map
         }
         fun pickProtocolCodec(protocolVersion: Int): BedrockCodec {
-            var bedrockCodec = MuCuteRelay.Companion.DefaultCodec
+            var bedrockCodec = MuCuteRelay.DefaultCodec
             for ((version, codec) in protocols.value) {
                 if (version > protocolVersion) break
                 bedrockCodec = codec
@@ -117,7 +108,7 @@ class AutoCodecPacketListener(
             muCuteRelaySession.server.peer.codecHelper.apply {
                 itemDefinitions = Definitions.itemDefinitions
                 blockDefinitions = Definitions.blockDefinitions
-                cameraPresetDefinitions = Definitions.cameraPresetDefinitions
+                cameraPresetDefinitions = cameraPresetDefinitions
                 encodingSettings = EncodingSettings.builder()
                     .maxListSize(Int.MAX_VALUE)
                     .maxByteArraySize(Int.MAX_VALUE)

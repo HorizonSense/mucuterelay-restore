@@ -30,18 +30,18 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
         if (packet is LoginPacket) {
             var newChain: Any? = null
             for (it in packet.chain) {
-                val chainBody = JWTUtilsKt.jwtPayload(it)
+                val chainBody = JWTUtils.jwtPayload(it)
                 if (chainBody != null && chainBody.has("extraData")) {
                     chainBody.addProperty(
                         "identityPublicKey",
                         Base64.getEncoder().withoutPadding().encodeToString(keyPair.public.encoded)
                     )
                     val json = AuthUtils.gson.toJson(chainBody)
-                    newChain = JWTUtilsKt.signJWT(json, keyPair)
+                    newChain = JWTUtils.signJWT(json, keyPair)
                 }
             }
             packet.chain.clear()
-            packet.chain.add(newChain)
+            packet.chain.add(newChain as String?)
             loginPacket = packet
             connectServer()
             return true
@@ -71,16 +71,16 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
             val jwt = packet.jwt
             val jwtSplit = jwt.split(".")
             val headerObject = JsonParser.parseString(
-                String(JWTUtilsKt.base64Decode(jwtSplit[0]), Charsets.UTF_8)
+                String(JWTUtils.base64Decode(jwtSplit[0]), Charsets.UTF_8)
             ).asJsonObject
             val payloadObject = JsonParser.parseString(
-                String(JWTUtilsKt.base64Decode(jwtSplit[1]), Charsets.UTF_8)
+                String(JWTUtils.base64Decode(jwtSplit[1]), Charsets.UTF_8)
             ).asJsonObject
             val serverKey = EncryptionUtils.parseKey(headerObject.get("x5u").asString)
             val key: SecretKey = EncryptionUtils.getSecretKey(
                 keyPair.private,
                 serverKey as PublicKey,
-                JWTUtilsKt.base64Decode(payloadObject.get("salt").asString)
+                JWTUtils.base64Decode(payloadObject.get("salt").asString)
             )
             val client = getMuCuteRelaySession().client
             client?.enableEncryption(key)
@@ -92,7 +92,7 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
     }
 
     protected fun connectServer() {
-        getMuCuteRelaySession().muCuteRelay.connectToServer { clientSession ->
+        getMuCuteRelaySession().muCuteRelay.connectToServer { _ ->
             println("Connected to server")
             val packet = RequestNetworkSettingsPacket()
             packet.protocolVersion = getMuCuteRelaySession().server.codec.protocolVersion

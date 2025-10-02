@@ -1,0 +1,8 @@
+.qodo
+.idea
+.gradle
+/build
+/local.properties
+.DS_Store
+
+
