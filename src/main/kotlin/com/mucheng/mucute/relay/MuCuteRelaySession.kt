@@ -55,7 +55,7 @@ class MuCuteRelaySession(peer: BedrockPeer, subClientId: Int, val muCuteRelay: M
                               beforeFunc: (MuCuteRelayPacketListener) -> Boolean,
                               sendFunc: (BedrockPacket) -> Unit,
                               afterFunc: (MuCuteRelayPacketListener) -> Unit) {
-        listeners.forEach {
+        listeners.forEach { it ->
             runCatching { if (beforeFunc(it)) return }
                 .onFailure { println("Before packet error: ${it.stackTraceToString()}") }
         }
@@ -65,7 +65,7 @@ class MuCuteRelaySession(peer: BedrockPeer, subClientId: Int, val muCuteRelay: M
             packetId = wrapper.packetId
         }.let(sendFunc)
 
-        listeners.forEach {
+        listeners.forEach { it ->
             runCatching { afterFunc(it) }
                 .onFailure { println("After packet error: ${it.stackTraceToString()}") }
         }

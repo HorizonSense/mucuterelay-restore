@@ -35,7 +35,7 @@ class XboxIdentityTokenCacheFileSystem(
         identifierJson.add(device.deviceType, tokenJson)
         json.add(identifier, identifierJson)
         removeExpired(json)
-        cacheFile.writeText(AuthUtils.gson.toJson(json), Charsets.UTF_8)
+        cacheFile.writeText(gson.toJson(json), Charsets.UTF_8)
     }
 
     override fun checkCache(device: XboxDeviceInfo): XboxIdentityToken? {
@@ -56,7 +56,7 @@ class XboxIdentityTokenCacheFileSystem(
                     } else {
                         identifierJson.remove(device.deviceType)
                         removeExpired(json)
-                        cacheFile.writeText(AuthUtils.gson.toJson(json), Charsets.UTF_8)
+                        cacheFile.writeText(gson.toJson(json), Charsets.UTF_8)
                         return null
                     }
                 }

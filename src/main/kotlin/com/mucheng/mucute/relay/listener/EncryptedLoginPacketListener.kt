@@ -2,8 +2,10 @@ package com.mucheng.mucute.relay.listener
 
 import com.google.gson.JsonParser
 import com.mucheng.mucute.relay.MuCuteRelaySession
-import com.mucheng.mucute.relay.util.AuthUtils
-import com.mucheng.mucute.relay.util.JWTUtils
+import com.mucheng.mucute.relay.util.base64Decode
+import com.mucheng.mucute.relay.util.gson
+import com.mucheng.mucute.relay.util.jwtPayload
+import com.mucheng.mucute.relay.util.signJWT
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm
 import org.cloudburstmc.protocol.bedrock.packet.*
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils
@@ -22,14 +24,14 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
         if (packet is LoginPacket) {
             var newChain: Any? = null
             for (it in packet.chain) {
-                val chainBody = JWTUtils.jwtPayload(it)
+                val chainBody = jwtPayload(it)
                 if (chainBody != null && chainBody.has("extraData")) {
                     chainBody.addProperty(
                         "identityPublicKey",
                         Base64.getEncoder().withoutPadding().encodeToString(keyPair.public.encoded)
                     )
-                    val json = AuthUtils.gson.toJson(chainBody)
-                    newChain = JWTUtils.signJWT(json, keyPair)
+                    val json = gson.toJson(chainBody)
+                    newChain = signJWT(json, keyPair)
                 }
             }
             packet.chain.clear()
@@ -63,16 +65,16 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
             val jwt = packet.jwt
             val jwtSplit = jwt.split(".")
             val headerObject = JsonParser.parseString(
-                String(JWTUtils.base64Decode(jwtSplit[0]), Charsets.UTF_8)
+                String(base64Decode(jwtSplit[0]), Charsets.UTF_8)
             ).asJsonObject
             val payloadObject = JsonParser.parseString(
-                String(JWTUtils.base64Decode(jwtSplit[1]), Charsets.UTF_8)
+                String(base64Decode(jwtSplit[1]), Charsets.UTF_8)
             ).asJsonObject
             val serverKey = EncryptionUtils.parseKey(headerObject.get("x5u").asString)
             val key: SecretKey = EncryptionUtils.getSecretKey(
                 keyPair.private,
                 serverKey as PublicKey,
-                JWTUtils.base64Decode(payloadObject.get("salt").asString)
+                base64Decode(payloadObject.get("salt").asString)
             )
             val client = muCuteRelaySession!!.client
             client?.enableEncryption(key)
@@ -91,8 +93,4 @@ open class EncryptedLoginPacketListener : MuCuteRelayPacketListener {
             muCuteRelaySession!!.serverBoundImmediately(packet)
         }
     }
-
-    override fun afterClientBound(packet: BedrockPacket) {}
-    override fun afterServerBound(packet: BedrockPacket) {}
-    override fun onDisconnect(reason: String) {}
 }

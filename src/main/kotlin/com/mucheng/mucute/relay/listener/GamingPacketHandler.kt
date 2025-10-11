@@ -50,8 +50,4 @@ class GamingPacketHandler(
     override fun beforeClientBound(packet: BedrockPacket): Boolean {
         return false
     }
-
-    override fun afterClientBound(packet: BedrockPacket) {}
-    override fun afterServerBound(packet: BedrockPacket) {}
-    override fun onDisconnect(reason: String) {}
 }

@@ -1,10 +1,6 @@
 package com.mucheng.mucute.relay.listener
 
-import com.mucheng.mucute.relay.util.AuthUtils
-import com.mucheng.mucute.relay.util.IXboxIdentityTokenCache
-import com.mucheng.mucute.relay.util.JWTUtils.signJWT
-import com.mucheng.mucute.relay.util.XboxDeviceInfo
-import com.mucheng.mucute.relay.util.XboxIdentityToken
+import com.mucheng.mucute.relay.util.*
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket
@@ -24,7 +20,7 @@ class XboxLoginPacketListener(
                 println("Token cache hit")
                 identityToken = cacheToken
             } else {
-                val fetched = AuthUtils.fetchIdentityToken(accessToken.invoke(), deviceInfo)
+                val fetched = fetchIdentityToken(accessToken.invoke(), deviceInfo)
                 tokenCache?.let {
                     println("Saving token cache")
                     it.cache(deviceInfo, fetched)
@@ -36,7 +32,7 @@ class XboxLoginPacketListener(
     }
 
     private fun getChain(): List<String> {
-        return AuthUtils.fetchChain(getIdentityToken().token, keyPair)
+        return fetchChain(getIdentityToken().token, keyPair)
     }
 
     fun forceFetchChain() {
